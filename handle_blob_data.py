@@ -36,4 +36,4 @@ def read_blob_data(entryID):
     print("[INFO] : Failed to read blob data from sqlite table", error)
   finally:
     if conn:
-        conn.close()
+      conn.close()
