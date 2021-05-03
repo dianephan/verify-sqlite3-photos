@@ -118,7 +118,8 @@ def hello():
 def register():
   if request.method == 'POST':
     # sender_phone_number = "+111233455"
-    sender_phone_number = request.form['phone']
+    print(request.form)
+    sender_phone_number = request.form['formatted_number']
     latitude = request.form['latitude']
     longitude = request.form['longitude']
     print("[INFO] :", sender_phone_number, " sent in the coordinates - ", latitude, " ,", longitude)
