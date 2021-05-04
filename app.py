@@ -7,20 +7,24 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 # from image_classifier import get_tags
 from handle_blob_data import convert_into_binary, write_to_file, read_blob_data
-
+from flask_googlemaps import GoogleMaps, Map
 import sqlite3
 from sqlite3 import Error
 
 load_dotenv()
-app = Flask(__name__)
-app.secret_key = 'dsfdgfdg;sd'
-
+GOOGLE_MAPS_API = os.environ.get('GOOGLE_MAPS_API')
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN= os.environ.get('TWILIO_AUTH_TOKEN')
 VERIFY_SERVICE_SID= os.environ.get('VERIFY_SERVICE_SID')
+
+app = Flask(__name__)
+GoogleMaps(app, key=GOOGLE_MAPS_API)
+
+app.secret_key = 'dsfdgfdg;sd'
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 app.config['UPLOAD_EXTENSIONS'] = ['jpg', 'png']
+markers = [] 
 
 # code for whatsapp portion here
 def respond(message):
@@ -46,6 +50,52 @@ def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['UPLOAD_EXTENSIONS']
   # returns T/F if '.' in filename and the extension is parsed correctly 
 
+@app.route('/map')
+def mapview(): 
+  try:
+      conn = sqlite3.connect('app.db')
+      print("Successful connection!")
+      cur = conn.cursor()
+      retrieve_img_url_query = """SELECT latitude, longitude, file_name FROM uploads;"""
+      cur.execute(retrieve_img_url_query)      
+      img_urls = cur.fetchall()
+      for entry in img_urls: 
+        print("[DATA] : parsed img url = ", entry)
+        markers.append({
+          'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+          'lat': entry[0], 
+          'lng': entry[1],
+          'infobox': '<div id="bodyContent">' +
+              '<img src="' + entry[2] + '" alt = "sky" style="width:175px;height:220px;"></img>' + '</div>' 
+        })
+      print("[DATA] : markers = ", markers)
+
+  except sqlite3.Error as e:
+    print(e)
+  finally:
+    if conn:
+        conn.close()
+    else:
+      print(f'Uh-oh')
+  
+  
+  mymap = Map(
+    identifier="sndmap",
+    style=(
+        "height:100%;"
+        "width:100%;"
+        "top:0;"
+        "position:absolute;"
+        "z-index:200;"
+        "zoom: -9999999;"
+    ),
+    # these coordinates re-center the map
+    lat=37.805355,
+    lng=-122.322618,
+    markers=markers,
+  )
+  return render_template('map.html', mymap=mymap)
+  
 # whatsapp portion
 @app.route('/webhook', methods=['POST'])
 def reply():
@@ -90,6 +140,7 @@ def reply():
       pic_url = request.form.get('MediaUrl0')  
 
       # # TO DO: CLARIFAI NOT WORKING WHYYY 
+      # # --> maybe check out older version of api?
       # relevant_tags = get_tags(pic_url)
       # print("The tags for your picture are : ", relevant_tags)
       # if 'sky' in relevant_tags:
@@ -113,10 +164,7 @@ def reply():
       error = "how tf did u get here."
 
 # code for non-whatsapp users here
-@app.route('/', methods=['GET', 'POST'])
-def hello():
-  return("gonna pause filepond for now and attempt my way...") 
-  # return render_template('index.html')
+# "gonna pause filepond for now and attempt my way...
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
