@@ -12,7 +12,8 @@
     {% if error %}
       <p class=error><strong>Error:</strong> {{ error }}
     {% endif %}
-    <form action = "http://localhost:5000/uploader" method = "POST" 
+    <!-- TO DO: Need to manually change this link lol or change to permanent link someday -->
+    <form action = "http://6256e027513e.ngrok.io/uploader" method = "POST" 
       enctype = "multipart/form-data">
       <input type = "file" name = "file" />
       <br>

@@ -2,6 +2,7 @@ import sqlite3
 from sqlite3 import Error
 from werkzeug.datastructures import FileStorage
 
+# TO DO: need to get full file path before converting to binary FML!!!
 def convert_into_binary(file_path):
   print("[INFO] : converting into binary data rn")
   with open(file_path, 'rb') as file:
