@@ -3,9 +3,10 @@ from dotenv import load_dotenv
 from flask import Flask, request, render_template, redirect, session, url_for
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
+from twilio.twiml.messaging_response import Message, MessagingResponse
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-# from image_classifier import get_tags
+from image_classifier import get_tags
 from handle_blob_data import convert_into_binary, write_to_file, read_blob_data
 from flask_googlemaps import GoogleMaps, Map
 import sqlite3
@@ -78,7 +79,6 @@ def mapview():
     else:
       print(f'Uh-oh')
   
-  
   mymap = Map(
     identifier="sndmap",
     style=(
@@ -139,20 +139,19 @@ def reply():
       user_id = query_result[0]
       pic_url = request.form.get('MediaUrl0')  
 
-      # # TO DO: CLARIFAI NOT WORKING WHYYY 
-      # # --> maybe check out older version of api?
-      # relevant_tags = get_tags(pic_url)
-      # print("The tags for your picture are : ", relevant_tags)
-      # if 'sky' in relevant_tags:
-      update_user_picture = '''UPDATE uploads
-        SET file_name = ?
-        WHERE user_id = ?'''
-      print("[DATA] : ")
-      cur = conn.cursor()
-      cur.execute(update_user_picture, (pic_url, user_id))
-      conn.commit()
-      print("[INFO] : sender has set their pic ")
-      return respond(f'You\'re all set!')
+      relevant_tags = get_tags(pic_url)
+      print("The tags for your picture are : ", relevant_tags)
+      if 'sky' in relevant_tags:
+        update_user_picture = '''UPDATE uploads
+          SET file_name = ?
+          WHERE id = ?'''
+        cur = conn.cursor()
+        cur.execute(update_user_picture, (pic_url, user_id))
+        conn.commit()
+        print("[INFO] : sender has set their pic ")
+        return respond(f'You\'re all set!')
+      else: 
+        return respond(f'Please send in a picture of the sky.')
     else:
       return respond(f'Please send your current location, then send a picture of the sky.')
   except Error as e:
@@ -278,3 +277,6 @@ def submitted_file():
       error = "Please upload a valid file."
       return render_template('uploadpage.html', error = error)
     
+if __name__ == "__main__":
+  main()
+  
