@@ -75,9 +75,9 @@ def mapview():
     print(e)
   finally:
     if conn:
-        conn.close()
+      conn.close()
     else:
-      print(f'Uh-oh')
+      print('Uh-oh')
   
   mymap = Map(
     identifier="sndmap",
@@ -115,11 +115,12 @@ def reply():
 
     # if user is not in the database and sends a word message such as "hello"
     if user_exists == 0 and media_msg == '0' and latitude is None and longitude is None:
-      return respond(f'Please submit coordinates through the WhatsApp mobile app.')
+      return respond('Please submit coordinates through the WhatsApp mobile app.')
+      # print('Please submit coordinates through the WhatsApp mobile app.')
 
     # if the user is already in the database but sends a word message such as "hello"
     elif user_exists == 1 and media_msg == '0':
-      return respond(f'Please send in a picture')
+      return respond('Please send in a picture')
 
     # if the user doesn't exist in the database yet and sends in their location data
     elif user_exists == 0 and latitude and longitude:
@@ -128,7 +129,7 @@ def reply():
       cur = conn.cursor()
       cur.execute(insert_users, (sender_phone_number, latitude, longitude, "PIC URL HERE", "BLOB UNNECESSARY",))
       conn.commit()
-      return respond(f'Thanks for sending in your location! Finish your entry by sending in a photo of the sky.')
+      return respond('Thanks for sending in your location! Finish your entry by sending in a photo of the sky.')
     
     # if the user exists in the database and sends in a media message
     elif user_exists == 1 and media_msg == '1':
@@ -149,11 +150,11 @@ def reply():
         cur.execute(update_user_picture, (pic_url, user_id))
         conn.commit()
         print("[INFO] : sender has set their pic ")
-        return respond(f'You\'re all set!')
+        return respond('You\'re all set!')
       else: 
-        return respond(f'Please send in a picture of the sky.')
+        return respond('Please send in a picture of the sky.')
     else:
-      return respond(f'Please send your current location, then send a picture of the sky.')
+      return respond('Please send your current location, then send a picture of the sky.')
   except Error as e:
     print(e)
   finally:
